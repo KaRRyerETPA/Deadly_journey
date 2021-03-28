@@ -1,0 +1,550 @@
+<!doctype html> 
+<html lang="en"> 
+<head> 
+    <meta charset="UTF-8" />
+    <title>Deadly_Journey</title>
+    <script src="//cdn.jsdelivr.net/npm/phaser@3.11.0/dist/phaser.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+
+var config = {
+    type: Phaser.AUTO,
+    width: 5500,
+    height: 1080,
+    physics: {
+        default: 'arcade',
+        arcade: {
+            gravity: { y: 100 },
+            debug: false
+        }
+    },
+    scene: {
+        preload: preload,
+        create: create,
+        update: update
+    }
+};
+
+var game = new Phaser.Game(config);
+
+//Variables
+    
+var player;
+var platforms;
+var cursors;
+var alien;
+var alienDead = false;
+var playerDead = false;
+var cameraOffset;
+var jump;
+var speed = 300;
+var directionLF_RT = false;
+var jumpBoost = false;
+var jumpBoostEnd = false;
+var healthBar;
+var healthRemaining = 3;
+var dead = false;
+var noHitFrame = false;
+var noHitFrameTime = 0;
+var noHitFrameTimer = 200;
+var energyCell;
+var energyCellRemaining;
+var energyCellConserved = 0;
+var teleportDash = false;
+var teleportDashActive = false;
+var teleportDashTime = 0;
+var teleportDashDirection;
+var RCSystem = false;
+var RCSystemTime = 0;
+var RCSystemActive = false;
+var RCSystemTimer = 500;
+var hitGround = false;
+var hitWall = false;
+var stock;
+var stockNumber = 0;
+var TeleportDash_pickup;
+var RCSystem_pickup;
+    
+//fonction PRELOAD
+    
+function preload ()
+{
+    this.load.image('space', 'assets/space.png');
+    this.load.image('planet', 'assets/planet.png');
+    this.load.image('debris1', 'assets/debris_1.png');
+    this.load.image('debris2', 'assets/debris_2.png');
+    this.load.image('debris3', 'assets/debris_3.png');
+    this.load.image('debris4', 'assets/debris_4.png');
+    this.load.image('debris5', 'assets/debris_5.png');
+    this.load.image('debris6', 'assets/debris_6.png');
+    this.load.image('energy_cell', 'assets/energy_cell.png');
+    this.load.image('MainMenu', 'assets/MainMenu.png');
+    this.load.image('GameOver', 'assets/GameOver.png');
+    this.load.image('Victory', 'assets/Victory.png');
+    this.load.image('space', 'assets/space.png');
+     this.load.image('TeleportDash_pickup', 'assets/TeleportDash_pickup.png');
+     this.load.image('RCSystem_pickup', 'assets/RCSystem_pickup.png');
+    this.load.spritesheet('energyCellRemaining', 'assets/EnergyBar.png',{frameWidth:155, frameHeight:25});
+    this.load.spritesheet('spationaute', 'assets/spationaute.png', {frameWidth: 32, frameHeight: 48 });
+    this.load.spritesheet('alien', 'assets/alien.png', {frameWidth: 60, frameHeight: 48 });
+    this.load.spritesheet('health', 'assets/HealthBar.png',{frameWidth:155, frameHeight:25});
+    this.load.spritesheet('stock', 'assets/Stock.png',{frameWidth:99, frameHeight:143});
+}
+
+//fonction CREATE
+
+function create ()
+{
+    //Background
+    
+    this.add.image(2750, 540, 'space').setScrollFactor(0.20,1);
+    this.add.image(2750, 540, 'planet').setScrollFactor(0.30,1);
+
+    //Plateforms
+    
+    platforms = this.physics.add.staticGroup();
+
+    platforms.create(3232,875, 'debris1');
+    platforms.create(3578,78, 'debris1');
+    platforms.create(3723,234, 'debris1');
+    platforms.create(3743,391, 'debris1');
+    platforms.create(5373,425, 'debris1');
+    platforms.create(5373,492, 'debris1');
+    platforms.create(536,375, 'debris1');
+    platforms.create(536,663, 'debris1');
+    platforms.create(178,524, 'debris1');
+    platforms.create(0,961, 'debris1');
+    platforms.create(0,1048, 'debris1');
+    platforms.create(400,1048, 'debris1');
+    platforms.create(800,1048, 'debris1');
+    platforms.create(1200,1048, 'debris1');
+    platforms.create(493,961, 'debris1');
+    platforms.create(944,961, 'debris1');
+    platforms.create(4123,809, 'debris1');
+    platforms.create(4814,809, 'debris1');
+    platforms.create(5284,809, 'debris1');
+    platforms.create(1811,977, 'debris1');
+    platforms.create(2567,759, 'debris1');
+    platforms.create(1036,375, 'debris1');
+    platforms.create(1036,725, 'debris2');
+    platforms.create(3178,525, 'debris2');
+    platforms.create(3578,525, 'debris2');
+    platforms.create(4445,175, 'debris2');
+    platforms.create(4845,176, 'debris2');
+    platforms.create(2813,191, 'debris2');
+    platforms.create(1436,293, 'debris3');
+    platforms.create(2403,643, 'debris3');
+    platforms.create(3272,176, 'debris3');
+    platforms.create(3432,-9, 'debris3');
+    platforms.create(3578,176, 'debris3');
+    platforms.create(4370,73, 'debris3');
+    platforms.create(236,775, 'debris4');
+    platforms.create(1536,725, 'debris4');
+    platforms.create(2478,425, 'debris4');
+    platforms.create(2647,-2, 'debris4');
+    platforms.create(3973,425, 'debris4');
+    platforms.create(4673,425, 'debris4');
+    platforms.create(1511,341, 'debris4');
+    platforms.create(1436,741, 'debris5');
+    platforms.create(1336,540, 'debris5');
+    platforms.create(1344,948, 'debris5');
+    platforms.create(1436,848, 'debris5');
+    platforms.create(2647,98, 'debris5');
+    platforms.create(2647,325, 'debris5');
+    platforms.create(4193,323, 'debris5');
+    platforms.create(3978,524, 'debris5');
+    platforms.create(3078,526, 'debris5');
+    platforms.create(4023,134, 'debris5');
+    platforms.create(3878,-22, 'debris5');
+    platforms.create(1511,540, 'debris5');
+    platforms.create(936,375, 'debris6');
+    platforms.create(5400,-77, 'debris6');
+
+    //player
+    
+    player = this.physics.add.sprite(873,727, 'spationaute');
+    player.setBounce(0.2);
+    player.setCollideWorldBounds(false);
+    
+    //alien
+    
+    alien = this.physics.add.sprite(893,617, 'alien');
+    alien = this.physics.add.sprite(3413,829, 'alien');
+    alien = this.physics.add.sprite(967,329, 'alien');
+    alien = this.physics.add.sprite(2978,143, 'alien');
+    alien = this.physics.add.sprite(3451,478, 'alien');
+    alien = this.physics.add.sprite(3978,188, 'alien');
+    alien = this.physics.add.sprite(4085,345, 'alien');
+    alien = this.physics.add.sprite(3826,32, 'alien');
+    alien = this.physics.add.sprite(4589,127, 'alien');
+    alien = this.physics.add.sprite(1467,695, 'alien');
+    alien = this.physics.add.sprite(178,475, 'alien');
+    alien = this.physics.add.sprite(1517,492, 'alien');
+    alien = this.physics.add.sprite(417,998, 'alien');
+    alien = this.physics.add.sprite(893,1002, 'alien');
+    alien = this.physics.add.sprite(4995,129, 'alien');
+    alien = this.physics.add.sprite(4304,759, 'alien');
+    
+    //camera
+    
+    this.cameras.main.setSize(1920, 1080);
+    this.cameras.main.setBounds(0,0,5500,1080);
+    this.cameras.main.startFollow(player);
+     
+    //input et add.physics
+    
+    energy_cell = this.physics.add.staticGroup();
+    cursors = this.input.keyboard.createCursorKeys();
+        
+    //energy_cell create
+    
+        energy_cell.create(1448,1026, 'energy_cell');
+        energy_cell.create(3943,501, 'energy_cell');
+        energy_cell.create(4461,401, 'energy_cell');
+
+    //energybar create
+    
+        energyCellRemaining = this.physics.add.sprite(236,19, 'energyCellRemaining').setScrollFactor(0,0);
+        energyCellRemaining.body.setAllowGravity(false);
+    
+    //healthbar create
+    
+        healthBar = this.physics.add.sprite(23,19, 'healthBar').setScrollFactor(0,0);     
+        healthBar.body.setAllowGravity(false);
+    
+    //stock create
+        
+        stock = this.physics.add.sprite(436,19, 'stock').setScrollFactor(0,0);
+        stock.body.setAllowGravity(false);
+    
+    //Abilities Pickup
+    
+    TeleportDash_pickup = this.physics.add.staticGroup();
+    RCSystem_pickup = this.physics.add.staticGroup();
+    
+    RCSystem_pickup.create(1362,464, 'RCSystem_pickup');
+    TeleportDash_pickup.create(1362,896, 'TeleportDash_pickup');
+    
+    //Animations de tout les assets
+    
+    this.anims.create({
+        key: 'left',
+        frames: this.anims.generateFrameNumbers('spationaute', { start: 1, end: 4 }),
+    });
+
+    this.anims.create({
+        key: 'right',
+        frames: this.anims.generateFrameNumbers('spationaute', { start: 5, end: 8 }),
+    });
+       
+    this.anims.create({
+            key: 'alienLeft',
+            frames: this.anims.generateFrameNumbers('alien', { start: 1, end: 3 }),
+            frameRate: 10,
+            repeat: -1 ,
+    });
+        
+    this.anims.create({
+            key: 'alienRight',
+            frames: this.anims.generateFrameNumbers('alien', { start: 3, end: 5 }),
+            frameRate: 10,
+            repeat: -1 ,
+    }); 
+    
+    this.anims.create({
+            key: 'full',
+            frames: [{key: 'health', frame: 0.}],
+        });
+        
+        this.anims.create({
+            key: 'wounded',
+            frames: [{key: 'health', frame: 1.}],
+        });
+        
+        this.anims.create({
+            key: 'h_wounded',
+            frames: [{key: 'health', frame: 2.}],
+            
+        });
+        
+        this.anims.create({
+            key: 'dead',
+            frames: [{key: 'health', frame: 3.}],
+        });
+        
+        this.anims.create({
+            key: '1_cell',
+            frames: [{key: 'energyCellRemaining', frame: 1.}],
+        });
+        
+        this.anims.create({
+            key: '2_cell',
+            frames: [{key: 'energyCellRemaining', frame: 2.}],
+        });
+        
+        this.anims.create({
+            key: '3_cell',
+            frames: [{key: 'energyCellRemaining', frame: 3.}],
+        });
+ 
+        this.anims.create({
+            key: 'Empty',
+            frames: [{key: 'stock', frame: 0.}],
+        });
+        
+        this.anims.create({
+            key: 'teleportDash',
+            frames: [{key: 'stock', frame: 1.}],
+        });
+        
+        this.anims.create({
+            key: 'RCSystem',
+            frames: [{key: 'stock', frame: 2.}],
+        });
+        
+        this.anims.create({
+            key: 'teleportDashL',
+            frames: [ { key: 'spationaute', frame: 2. } ],
+        });
+        
+        this.anims.create({
+            key: 'teleportDashR',
+            frames: [ { key: 'spationaute', frame: 8. } ],
+        });
+
+    //Collider et Overlap
+    
+    this.physics.add.collider(player, platforms, hitedGround); 
+    this.physics.add.collider(alien, platforms);
+    this.physics.add.collider(alien, player, hit);   
+    this.physics.add.overlap(player, DashAbilitie, RCSystem_pickup);
+    this.physics.add.overlap(player, RCSystemAbilitie, TeleportDash_pickup); 
+    this.physics.add.overlap(energy_cell, player, energy_cellHit);
+}
+
+//fonction UPDATE avec toutes les fonctions
+
+function update ()
+    {  
+         alien.setVelocityX(0);
+        
+        if(alienDead == true){
+            
+            alienDead = false }
+            
+        if(playerDead == true){ 
+        
+            player.disableBody(true, true);
+            playerDead = false
+        }
+             
+        if(noHitFrame == true){
+            noHitFrameTime = noHitFrameTime + 1
+            if(noHitFrame >= noHitFrameTimer){
+                noHitFrame = false
+                noHitFrameTime = 0
+            }
+        }  
+
+        if(stockNumber == 0){
+            stock.anims.play('Empty');
+        }
+        else if(stockNumber == 1){
+            stock.anims.play('teleportDash');
+        }
+        else if(stockNumber == 2){
+            stock.anims.play('RCSystem');
+        } 
+        
+        if (cursors.left.isDown )  {
+            player.setVelocityX(-speed);
+            
+            if(directionLF_RT == false){
+                player.anims.play('left');
+            }
+            
+            directionLF_RT = true
+        }
+        else if (cursors.right.isDown) {
+            player.setVelocityX(speed);
+            
+            if(directionLF_RT == true){
+                player.anims.play('right');
+            } 
+            
+            directionLF_RT = false
+        }
+        
+        else{
+            player.setVelocityX(0);
+        }
+        
+        if (cursors.up.isDown && RCSystemActive == false && hitGround == true){
+            player.setVelocityY(jump);
+            hitGround = false
+        }
+        
+        if (cursors.up.isUp && hitGround == false && jumpBoostEnd == false){
+            jumpBoost = true
+        }
+        
+        if (cursors.up.isDown && jumpBoost == true){
+            player.setVelocityY(jump);
+            jumpBoostEnd = true
+            jumpBoost = false
+        }
+        
+        //TeleportDash function
+        
+        if(teleportDash == true && cursors.space.isDown && cursors.left.isDown){
+            teleportDashActive = true
+            teleportDash = false
+            
+            stockNumber = 0
+            teleportDashDirection = true   
+        }  
+
+        if(teleportDash == true && cursors.space.isDown && cursors.right.isDown){
+            teleportDashActive = true
+            teleportDash = false
+            
+            stockNumber = 0
+            teleportDashDirection = false    
+        } 
+        
+        //RCSystem function
+        
+        if(RCSystem == true && cursors.space.isDown){
+            
+            RCSystemActive = true
+            player.setGravityY(-300)
+            
+        }
+        
+        if( RCSystemActive == true && cursors.up.isDown ){
+            player.setVelocityY(-speed)
+        }
+        else if ( RCSystemActive == true && cursors.down.isDown ){
+            player.setVelocityY(speed)
+        }
+        else if (RCSystemActive == true){
+            player.setVelocityY(0)
+        }
+        
+        if (RCSystemActive == true){
+            RCSystemTime = RCSystemTime + 1
+        }
+        
+        
+        if(RCSystemTime >= RCSystemTimer){
+
+            RCSystem = false
+            RCSystemActive = false
+            RCSystemTime = 0
+            player.setGravityY(300)
+            stockNumber = 0
+        }
+        
+        if (RCSystemActive == true && RCSystemTime <= RCSystemTimer){
+            
+            stockNumber = 2
+            hitGround = false
+        }
+}
+    //Function jump
+    
+    function hitedGround (player, platforms)
+    {   
+        if(player.body.touching.left){
+            hitWall = true
+        }
+        else if (player.body.touching.right){
+            hitWall = true
+        }
+        else{
+            hitGround = true
+            jumpBoost = false
+            jumpBoostEnd = false
+        }
+    }
+    
+     //Function abilites
+    
+    function DashAbilitie (player, TeleportDash_pickup)
+    {
+        teleportDash = true
+        RCSystemActive = false
+        stockNumber = 1
+    }
+    
+
+    function RCSystemAbilitie (player, RCSystem_pickup)
+    {
+        RCSystemActive = true
+        teleportDash = false
+        stockNumber = 2
+    }
+    
+    //Damage on player-alien
+    
+    function hit (alien, player)
+    {
+        if (teleportDashActive == true){
+            alien.disableBody(true, true);
+            alienDead = true
+        }
+        
+        if (healthRemaining > 0 && noHitFrame == false && teleportDashActive == false){
+            healthRemaining = healthRemaining - 1
+            noHitFrame = true
+        }
+        
+        if(healthRemaining == 3){
+            healthBar.anims.play('full');
+        }
+        
+        else if (healthRemaining == 2){
+            healthBar.anims.play('wounded');
+        }
+        
+        else if (healthRemaining == 1){
+            healthBar.anims.play('h_wounded');
+        }
+        
+        else if (healthRemaining <= 0){
+            healthBar.anims.play('dead');
+            playerDead = true
+        } 
+    }
+    
+    //pickable energy_cell
+    
+    function energy_cellHit (player, energy_cell)
+    {
+        energyCellConserved = energyCellConserved + 1
+        energy_cell.disableBody(true, true);
+        
+         if(energyCellConserved == 1){
+            energyCellRemaining.anims.play('1_cell');
+        }
+        
+        else if (energyCellConserved == 2){
+            energyCellRemaining.anims.play('2_cell');
+        }
+        
+        else if (energyCellConserved == 3){
+            energyCellRemaining.anims.play('3_cell');
+        }   
+    }
+
+</script>
+
+</body>
+</html>
